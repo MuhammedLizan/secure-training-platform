@@ -1,10 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, session
+from flask_jwt_extended import JWTManager, create_access_token
 import sqlite3
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = "secure-training-platform-secret-key"
+app.config["JWT_SECRET_KEY"] = "jwt-secret-key-for-training-platform"
+jwt = JWTManager(app)
 
 DATABASE = "database/users.db"
 
@@ -142,9 +145,12 @@ def login():
 
             return f"Incorrect password. Attempt {attempts} of 3"
 
+
         session[attempts_key] = 0
 
-        return redirect(url_for("dashboard"))
+        access_token = create_access_token(identity=username)
+
+        return redirect(url_for("dashboard", token=access_token))
 
     return render_template("login.html")
 
