@@ -127,25 +127,30 @@ def login():
         if not user:
             return "Username does not match with registered names"
 
-        attempts = session.get("failed_attempts", 0)
+        attempts_key = "failed_attempts_" + username
+        attempts = session.get(attempts_key, 0)
 
         if attempts >= 3:
             return "Warning: Maximum login attempts exceeded"
 
         if not check_password_hash(user["password"], password):
             attempts += 1
-            session["failed_attempts"] = attempts
+            session[attempts_key] = attempts
 
             if attempts >= 3:
                 return "Warning: Maximum login attempts exceeded"
 
             return f"Incorrect password. Attempt {attempts} of 3"
 
-        session["failed_attempts"] = 0
+        session[attempts_key] = 0
 
-        return "Login successful"
+        return redirect(url_for("dashboard"))
 
     return render_template("login.html")
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
 
 if __name__ == "__main__":
     init_db()
