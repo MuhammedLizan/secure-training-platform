@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from flask_jwt_extended import JWTManager, create_access_token
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import sqlite3
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -7,6 +7,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 app.secret_key = "secure-training-platform-secret-key"
 app.config["JWT_SECRET_KEY"] = "jwt-secret-key-for-training-platform"
+app.config["JWT_TOKEN_LOCATION"] = ["query_string"]
+app.config["JWT_QUERY_STRING_NAME"] = "token"
 jwt = JWTManager(app)
 
 DATABASE = "database/users.db"
@@ -155,8 +157,10 @@ def login():
     return render_template("login.html")
 
 @app.route("/dashboard")
+@jwt_required()
 def dashboard():
-    return render_template("dashboard.html")
+    username = get_jwt_identity()
+    return render_template("dashboard.html", username=username)
 
 if __name__ == "__main__":
     init_db()
